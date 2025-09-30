@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<title>APL 2025/26 Turnir Jadvali</title>
+<style>
+  body { 
+    font-family: Arial, sans-serif; 
+    background:#0b2240; 
+    color:#eee; 
+    padding:20px; 
+  }
+  h1 { text-align:center; margin-bottom: 30px; }
+  .container { display:flex; gap:20px; align-items: flex-start; }
+  table { 
+    flex:1; 
+    border-collapse: collapse; 
+    background: #123060; 
+    border-radius: 8px; 
+    overflow: hidden; 
+  }
+  th, td { padding: 12px 10px; text-align: center; border-bottom: 1px solid #0a1c3e; }
+  th { background-color: #0a1c3e; }
+  tbody tr:hover { background-color: #1f3979; cursor: pointer; }
+  #info { 
+    flex:1; 
+    background: #0a1c3ecc; 
+    padding: 20px; 
+    border-radius: 8px; 
+    min-width: 300px;
+    display: none; 
+    opacity: 0;
+    transform: translateX(50px);
+    transition: all 0.4s ease;
+  }
+  #info.show {
+    display: block;
+    opacity: 1;
+    transform: translateX(0);
+  }
+  #info h2 { margin-top: 0; }
+  ul { list-style: none; padding-left: 0; }
+  ul li { padding: 4px 0; }
+  footer { 
+    text-align:center; 
+    margin-top:30px; 
+    color:#ccc; 
+  }
+</style>
+</head>
+<body>
+
+<h1>Ingliz Premyer Ligasi 2025/26 - Turnir Jadvali</h1>
+<div class="container">
+  <table id="leagueTable">
+    <thead>
+      <tr>
+        <th>Orin</th>
+        <th>Klub</th>
+        <th>O‘yinlar</th>
+        <th>G‘alaba</th>
+        <th>Durang</th>
+        <th>Mag‘lubiyat</th>
+        <th>Gol farqi</th>
+        <th>Ochko</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div id="info">
+    <h2 id="clubName"></h2>
+    <h3>Kelgusi o‘yinlar:</h3>
+    <ul id="matchesList"></ul>
+    <h3>Asosiy tarkib:</h3>
+    <ul id="lineupList"></ul>
+  </div>
+</div>
+
+<script>
+// 20 ta klub (hammasi massivda)
+const clubs = [
+  {name:"Liverpool", played:6, win:5, draw:0, loss:1, goalDiff:5, points:15,
+   lineup:["Allison","Van Dijk","Konate","Kerkez","Frimpong","Mac Allister","Wirtz","Szoboszlai","Salah","Ekiteke","Chiesa"],
+   matches:[{date:"2025-10-04", opponent:"Cheldsea", Away:true},{date:"2025-10-19", opponent:"Manchester United", home:false},{date:"2025-10-26", opponent:"Brentford", Away:true}]},
+  {name:"Arsenal", played:6, win:4, draw:1, loss:1, goalDiff:9, points:13,
+   lineup:["Raya","Gabriel","Saliba","Calafiori","Timber","Ødegaard","Rice","Saka","Martinelli","Gyökeres","Trossard"],
+   matches:[{date:"2025-10-04", opponent:"West Ham", home:false},{date:"2025-10-18", opponent:"Fulham", Away:true},{date:"2025-10-26", opponent:"Crystal Pales", home:false}]},
+  {name:"Manchester City", played:6, win:3, draw:1, loss:2, goalDiff:8, points:10,
+   lineup:["Dannaruma","Khusanov","Dias","Stones","Gvardiol","Rodri","Reijnders","Foden","Silva","Doku","Haaland"],
+   matches:[{date:"2025-10-02", opponent:"Brentford", Away:true},{date:"2025-10-18", opponent:"Everton", home:false},{date:"2025-10-26", opponent:"Aston Villa", Away:true}]},
+  {name:"Chelsea", played:6, win:2, draw:2, loss:2, goalDiff:3, points:8,
+   lineup:["Sanchez","James","Chalobah","Colwill","Cucurella","Caicedo","Enzo","Palmer","Neto","J.Pedro","Estavao"],
+   matches:[{date:"2025-10-04", opponent:"Liverpool", home:true},{date:"2025-10-18", opponent:"Nottinhem Forest", Away:true},{date:"2025-10-25", opponent:"AFC Sanderland", home:false}]},
+  {name:"Tottenham", played:6, win:3, draw:2, loss:1, goalDiff:7, points:11,
+   lineup:["Vicario","Romero","Udogie","Dragusin","Palhinha","Maddison","Simons","Richarlison","Bergvell","Kulusevski","Kudus"],
+   matches:[{date:"2025-10-04", opponent:"Leeds United", Away:true},{date:"2025-10-19", opponent:"Aston Villa", home:true},{date:"2025-10-26", opponent:"Everton", Away:false}]},
+  {name:"Manchester United", played:6, win:2, draw:1, loss:3, goalDiff:-4, points:7,
+   lineup:["Lemmens","Mazraui","Martinez","De ligt","Dorgu","Mainoo","Fernandes","Casemiro","Cunha","Seshko","Mbeumo"],
+   matches:[{date:"2025-10-04", opponent:"AFC SAnderland", home:true},{date:"2025-10-19", opponent:"Liverpool", Away:false},{date:"2025-10-25", opponent:"Brighton", home:false}]},
+  {name:"Newcastle", played:6, win:1, draw:2, loss:3, goalDiff:-1, points:6,
+   lineup:["Pope","Trippier","Botman","Burn","Livramento","Tonali","Guimaraes","Willock","Woltemade","Gordon","Elanga"],
+   matches:[{date:"2025-10-05", opponent:"Nottingem Forest", home:true},{date:"2025-10-18", opponent:"Brighton", Away:false},{date:"2025-10-25", opponent:"Fulahm", home:true}]},
+  {name:"Aston Villa", played:6, win:3, draw:1, loss:2, goalDiff:2, points:10,
+   lineup:["Martinez","Cash","Mings","Torres","Digne","Douglas Luiz","McGinn","Tielemans","Bailey","Watkins","Diaby"],
+   matches:[{date:"2025-10-02", opponent:"Wolves", home:true},{date:"2025-10-09", opponent:"Crystal Palace", home:false},{date:"2025-10-16", opponent:"Leicester", home:true}]},
+  {name:"West Ham", played:6, win:2, draw:2, loss:2, goalDiff:-1, points:8,
+   lineup:["Areola","Zouma","Aguerd","Coufal","Emerson","Soucek","Ward-Prowse","Bowen","Paqueta","Benrahma","Antonio"],
+   matches:[{date:"2025-10-02", opponent:"Chelsea", home:false},{date:"2025-10-09", opponent:"Bournemouth", home:true},{date:"2025-10-16", opponent:"Tottenham", home:true}]},
+  {name:"Brighton", played:6, win:2, draw:2, loss:2, goalDiff:0, points:8,
+   lineup:["Verbruggen","Dunk","Webster","Lamptey","Estupiñán","Gross","Milner","Mitoma","March","Pedro","Ferguson"],
+   matches:[{date:"2025-10-02", opponent:"Tottenham", home:false},{date:"2025-10-09", opponent:"Newcastle", home:true},{date:"2025-10-16", opponent:"Man United", home:true}]},
+  {name:"Crystal Palace", played:6, win:3, draw:3, loss:0, goalDiff:5, points:12,
+   lineup:["Johnstone","Ward","Guéhi","Andersen","Mitchell","Lerma","Eze","Olise","Ayew","Mateta","Edouard"],
+   matches:[{date:"2025-10-02", opponent:"Wolves", home:false},{date:"2025-10-09", opponent:"Burnley", home:true},{date:"2025-10-16", opponent:"Sheffield", home:false}]},
+  {name:"Leicester", played:6, win:2, draw:1, loss:3, goalDiff:-3, points:7,
+   lineup:["Hermansen","Faes","Evans","Ricardo","Justin","Dewsbury-Hall","Ndidi","Mavididi","Vardy","Iheanacho","Praet"],
+   matches:[{date:"2025-10-02", opponent:"Man United", home:false},{date:"2025-10-09", opponent:"Burnley", home:true},{date:"2025-10-16", opponent:"Villa", home:false}]},
+  {name:"Everton", played:6, win:1, draw:3, loss:2, goalDiff:-2, points:6,
+   lineup:["Pickford","Coleman","Tarkowski","Keane","Mykolenko","Onana","Gueye","Harrison","McNeil","Calvert-Lewin","Beto"],
+   matches:[{date:"2025-10-02", opponent:"Newcastle", home:false},{date:"2025-10-09", opponent:"Sheffield", home:true},{date:"2025-10-16", opponent:"Chelsea", home:true}]},
+  {name:"Wolves", played:6, win:1, draw:3, loss:2, goalDiff:-4, points:6,
+   lineup:["Sa","Semedo","Kilman","Dawson","Bueno","Lemina","Joao Gomes","Neto","Cunha","Hwang","Sarabia"],
+   matches:[{date:"2025-10-02", opponent:"Villa", home:false},{date:"2025-10-09", opponent:"Leeds", home:true},{date:"2025-10-16", opponent:"Burnley", home:true}]},
+  {name:"Bournemouth", played:6, win:1, draw:2, loss:3, goalDiff:-6, points:5,
+   lineup:["Neto","Kelly","Zabarnyi","Senesi","Smith","Cook","Billing","Brooks","Tavernier","Solanke","Kluivert"],
+   matches:[{date:"2025-10-02", opponent:"West Ham", home:false},{date:"2025-10-09", opponent:"Crystal Palace", home:true},{date:"2025-10-16", opponent:"Leeds", home:false}]},
+  {name:"Leeds", played:6, win:1, draw:2, loss:3, goalDiff:-6, points:5,
+   lineup:["Meslier","Ayling","Struijk","Cooper","Firpo","Adams","Roca","Aaronson","Harrison","Bamford","Summerville"],
+   matches:[{date:"2025-10-02", opponent:"Liverpool", home:true},{date:"2025-10-09", opponent:"Wolves", home:false},{date:"2025-10-16", opponent:"Bournemouth", home:true}]},
+  {name:"Sheffield", played:6, win:1, draw:1, loss:4, goalDiff:-7, points:4,
+   lineup:["Foderingham","Baldock","Robinson","Egan","Ahmedhodzic","Norwood","Osborn","Hamer","McBurnie","Sharp","Traore"],
+   matches:[{date:"2025-10-02", opponent:"Burnley", home:true},{date:"2025-10-09", opponent:"Everton", home:false},{date:"2025-10-16", opponent:"Palace", home:true}]},
+  {name:"Burnley", played:6, win:1, draw:1, loss:4, goalDiff:-8, points:4,
+   lineup:["Trafford","Roberts","Beyer","O'Shea","Taylor","Cullen","Brownhill","Zaroury","Tella","Amdouni","Rodriguez"],
+   matches:[{date:"2025-10-02", opponent:"Sheffield", home:false},{date:"2025-10-09", opponent:"Leicester", home:false},{date:"2025-10-16", opponent:"Wolves", home:false}]},
+  {name:"Nottingham Forest", played:6, win:1, draw:1, loss:4, goalDiff:-9, points:4,
+   lineup:["Turner","Aurier","Niakhate","Worrall","Toffolo","Danilo","Mangala","Gibbs-White","Johnson","Awoniyi","Elanga"],
+   matches:[{date:"2025-10-02", opponent:"Fulham", home:true},{date:"2025-10-09", opponent:"Villa", home:false},{date:"2025-10-16", opponent:"Luton", home:true}]},
+  {name:"Fulham", played:6, win:1, draw:1, loss:4, goalDiff:-9, points:4,
+   lineup:["Leno","Tete","Ream","Adarabioyo","Robinson","Palhinha","Reed","Pereira","Willian","Jimenez","Wilson"],
+   matches:[{date:"2025-10-02", opponent:"Forest", home:false},{date:"2025-10-09", opponent:"Luton", home:true},{date:"2025-10-16", opponent:"Chelsea", home:false}]}
+];
+
+// Jadvalni chiqarish
+const tbody = document.querySelector("#leagueTable tbody");
+function renderTable() {
+  tbody.innerHTML = "";
+  clubs.sort((a,b)=>{
+    if(b.points!==a.points) return b.points-a.points;
+    if(b.goalDiff!==a.goalDiff) return b.goalDiff-a.goalDiff;
+    return a.name.localeCompare(b.name);
+  });
+  clubs.forEach((club,index)=>{
+    const tr=document.createElement("tr");
+    tr.dataset.index=index;
+    tr.innerHTML=`<td>${index+1}</td><td>${club.name}</td><td>${club.played}</td><td>${club.win}</td><td>${club.draw}</td><td>${club.loss}</td><td>${club.goalDiff}</td><td>${club.points}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+renderTable();
+
+// Klub ustiga bosilganda yon panelni ochish
+const infoDiv=document.getElementById("info");
+const clubNameH2=document.getElementById("clubName");
+const matchesList=document.getElementById("matchesList");
+const lineupList=document.getElementById("lineupList");
+
+tbody.addEventListener("click", e=>{
+  let tr=e.target.closest("tr");
+  if(!tr) return;
+  const club=clubs[tr.dataset.index];
+  clubNameH2.textContent=club.name;
+
+  matchesList.innerHTML="";
+  club.matches.forEach(m=>{
+    const li=document.createElement("li");
+    li.textContent=`${m.date} - ${m.home?"Uy":"Safar"} vs ${m.opponent}`;
+    matchesList.appendChild(li);
+  });
+
+  lineupList.innerHTML="";
+  club.lineup.forEach(p=>{
+    const li=document.createElement("li");
+    li.textContent=p;
+    lineupList.appendChild(li);
+  });
+
+  infoDiv.classList.add("show");
+});
+</script>
+
+<footer>
+  Developer: <strong>YALKAPOVDEV</strong>
+</footer>
+
+</body>
+</html>
